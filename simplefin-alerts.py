@@ -3,15 +3,12 @@ import time
 import requests
 import base64
 import pickle
+from pushover import Client
 
-def send_via_apprise(apprise_url,tag,content):
+def send_via_pushover(pushover_user,pushover_api,pushover_device,content):
 
-    payload='body='+content+'&tag='+tag
-    headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
-
-    response = requests.request("POST", apprise_url, headers=headers, data=payload)
+    client = Client(pushover_user, api_token=pushover_api, device=pushover_device)
+    client.send_message(content, title='SimpleFin')
 
     return None
 
@@ -28,11 +25,13 @@ def setup_function(file_name):
     response = requests.post(claim_url)
     access_url = response.text
 
-    apprise_url = input('Apprise URL? (leave blank to skip) ')
+    pushover_user = input('Pushover User? (leave blank to skip) ')
 
-    apprise_tag = input('Apprise Tag? (leave blank to skip) ')
+    pushover_api = input('Pushover API? (leave blank to skip) ')
 
-    data = {"access_url":access_url, "apprise_url":apprise_url, "apprise_tag":apprise_tag}
+    pushover_device = input('Pushover Device? (leave blank to skip) ')
+
+    data = {"access_url":access_url, "pushover_user":pushover_user, "pushover_api":pushover_api, "pushover_device":pushover_device}
         
     with open(file_name,"wb") as  file:
         pickle.dump(data, file)
@@ -50,8 +49,9 @@ def main():
         with open(file_name,"rb") as  file:
             data = pickle.load(file)
             access_url = data["access_url"]
-            apprise_url = data["apprise_url"]
-            apprise_tag = data["apprise_tag"]
+            pushover_user = data["pushover_user"]
+            pushover_api = data["pushover_api"]
+            pushover_device = data["pushover_device"]
 
             file.close()
     
@@ -66,8 +66,9 @@ def main():
         with open(file_name,"rb") as  file:
             data = pickle.load(file)
             access_url = data["access_url"]
-            apprise_url = data["apprise_url"]
-            apprise_tag = data["apprise_tag"]
+            pushover_user = data["pushover_user"]
+            pushover_api = data["pushover_api"]
+            pushover_device = data["pushover_device"]
 
             file.close()
         
@@ -77,9 +78,9 @@ def main():
     url = scheme + '//' + rest + '/accounts'
     username, password = auth.split(':', 1)
 
-    start_datetime = datetime.date(2023, 11, 1)
+    start_datetime = datetime.date.today()-datetime.timedelta(days=1)
     start_unixtime = int(round(time.mktime(start_datetime.timetuple())))
-    end_datetime = datetime.date(2023, 11, 2)
+    end_datetime = datetime.date.today()
     end_unixtime = int(round(time.mktime(end_datetime.timetuple())))
 
     response = requests.get(url, auth=(username, password),params={'start-date': start_unixtime, 'end-date': end_unixtime})
@@ -92,13 +93,8 @@ def main():
     if error_string:
         print(error_string)
 
-        if apprise_url:
-            send_via_apprise(apprise_url,apprise_tag,error_string)
-
-    else:
-        print('No SimpleFin Accounts in Error State')
-        if apprise_url:
-            send_via_apprise(apprise_url,apprise_tag,'No SimpleFin Accounts in Error State')
+        if pushover_user:
+            send_via_pushover(pushover_user,pushover_api,pushover_device,error_string)
     
 if __name__ == "__main__":
     main()
