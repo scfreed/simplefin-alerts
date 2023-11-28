@@ -1,3 +1,4 @@
+import os
 import datetime
 import time
 import requests
@@ -42,7 +43,7 @@ def setup_function(file_name):
 
 def main():
 
-    file_name = "simplefin-data.pickle"
+    file_name = os.path.dirname(os.path.realpath(__file__)) + "/simplefin-data.pickle"
 
     try:
 
