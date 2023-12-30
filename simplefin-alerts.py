@@ -4,12 +4,12 @@ import time
 import requests
 import base64
 import pickle
-from pushover import Client
+from pushover import Pushover
 
 def send_via_pushover(pushover_user,pushover_api,pushover_device,content):
 
-    client = Client(pushover_user, api_token=pushover_api, device=pushover_device)
-    client.send_message(content, title='SimpleFin')
+    client = Pushover(token=pushover_api)
+    client.message(user=pushover_user, message=content, title='SimpleFin', device=pushover_device)
 
     return None
 
